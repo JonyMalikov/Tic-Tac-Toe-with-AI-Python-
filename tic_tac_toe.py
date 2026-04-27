@@ -1,3 +1,7 @@
+import random
+import time
+
+
 def print_board(board):
     """Выводит игровое поле 3x3 в читаемом формате."""
     print("---------")
@@ -26,6 +30,14 @@ def player_move(board):
             return index
         except ValueError:
             print("Ошибка: введите целые числа.")
+
+
+def ai_random_move(board):
+    """
+    Возвращает индекс случайной свободной клетки (0–8).
+    """
+    free_cells = [i for i, cell in enumerate(board) if cell == " "]
+    return random.choice(free_cells)
 
 
 def check_winner(board, player):
@@ -57,7 +69,10 @@ def check_game_over(board):
         print("\n🏆 Победа! Игрок X выиграл!")
         return True
     if check_winner(board, "O"):
-        print("\n🏆 Победа! Игрок O выиграл!")
+        if vs_ai:  # vs_ai — глобальная? Лучше передать параметром. Исправим ниже.
+            print("\n🤖 Компьютер победил!")
+        else:
+            print("\n🏆 Победа! Игрок O выиграл!")
         return True
     if is_board_full(board):
         print("\n🤝 Ничья! Поле заполнено.")
@@ -66,18 +81,35 @@ def check_game_over(board):
 
 
 def main():
-    """Основной игровой цикл."""
+    """Основной игровой цикл с выбором режима."""
+    global vs_ai  # чтобы check_game_over могла использовать
     board = [" "] * 9
     move_count = 0
 
     print("Добро пожаловать в Крестики-нолики!")
     print("Игрок X ходит первым.\n")
 
+    print("Выберите режим игры:")
+    print("1 — два игрока")
+    print("2 — игра против ИИ")
+    mode = input("Ваш выбор (1/2): ").strip()
+    while mode not in ("1", "2"):
+        mode = input("Введите 1 или 2: ").strip()
+    vs_ai = mode == "2"
+
     while True:
         print_board(board)
         current_player = "X" if move_count % 2 == 0 else "O"
         print(f"Ход игрока {current_player}")
-        index = player_move(board)
+
+        if vs_ai and current_player == "O":
+            print("Компьютер думает...")
+            time.sleep(0.5)
+            index = ai_random_move(board)
+            print(f"Компьютер выбрал клетку {index // 3 + 1} {index % 3 + 1}")
+        else:
+            index = player_move(board)
+
         board[index] = current_player
 
         if check_game_over(board):
